@@ -1,0 +1,7 @@
+*/.terraform/*
+*.tfstate
+*.tfstate.*
+*.terraform.*
+*.out
+*.ps1
+azure-storage

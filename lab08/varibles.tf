@@ -1,19 +1,19 @@
 variable "resourcegroup" {
   type        = list(any)
   description = "Resource Group used for all resources."
-  default     = ["az104-08-rg01", "az104-08-rg02"]
+  default     = ["az104-08-rg03", "az104-08-rg04"]
 }
 
 variable "resourcegroup1" {
   type        = string
   description = "Resource Group used for all resources."
-  default     = "az104-08-rg01"
+  default     = "az104-08-rg03"
 }
 
 variable "resourcegroup2" {
   type        = string
   description = "Resource Group used for all resources."
-  default     = "az104-08-rg02"
+  default     = "az104-08-rg04"
 }
 
 variable "size" {
@@ -26,12 +26,6 @@ variable "storage_account_type" {
   type        = string
   description = "Virtual Machine Disk type, Default: Standard_LRS"
   default     = "Standard_LRS"
-}
-
-variable "name" {
-  type        = list(any)
-  description = "Virtual Machine Name."
-  default     = ["az104-08-vm0", "az104-08-vm1"]
 }
 
 variable "name0" {
@@ -57,13 +51,7 @@ variable "nic1" {
 variable "nic2" {
   type        = string
   description = "Virtual Network Interface Name."
-  default     = "az104-08-vm1"
-}
-
-variable "vnet" {
-  type        = list(any)
-  description = "Virtual network Name used for all resources"
-  default     = ["az104-08-rg01-vnet01", "az104-08-rg01-vnet02"]
+  default     = "az104-08-vm3"
 }
 
 variable "vnet1" {
@@ -76,6 +64,42 @@ variable "vnet2" {
   type        = string
   description = "Virtual network Name used for all resources"
   default     = "az104-08-rg01-vnet02"
+}
+
+variable "publicip" {
+  type        = string
+  description = "The public IP assin to the new VM."
+  default     = "az104-08"
+}
+
+variable "publicip_sku" {
+  type        = string
+  description = "The public IP sku: Default Basic"
+  default     = "Basic"
+}
+
+variable "lb" {
+  type        = string
+  description = "Virtual network Name used for all resources"
+  default     = "az10408vmss-lb"
+}
+
+variable "back_pool" {
+  type        = string
+  description = "Virtual network Name used for all resources"
+  default     = "BackEndAddressPool"
+}
+
+variable "lbnat_pool" {
+  type        = string
+  description = "Virtual network Name used for all resources"
+  default     = "PublicIPAddress"
+}
+
+variable "lb_probe" {
+  type        = string
+  description = "Virtual network Name used for all resources"
+  default     = "http-probe"
 }
 
 variable "source_image_reference_publisher" {
@@ -144,6 +168,18 @@ variable "nsg" {
   default     = "az10408vmss0-nsg"
 }
 
+variable "vmss" {
+  type        = string
+  description = "Network Security Group Name used for all resources"
+  default     = "vmss1"
+}
+
+variable "autoscale" {
+  type        = string
+  description = "Network Security Group Name used for all resources"
+  default     = "az10408vmss1-autoscale"
+}
+
 variable "user" {
   type        = string
   description = "User Name to connect on the VM."
@@ -153,19 +189,19 @@ variable "user" {
 variable "password" {
   type        = string
   description = "password to connect on the VM."
-  default     = "Q1w2e3r4t5%"
+  default     = "Q1w2e3r4t5%y"
 }
 
 variable "location" {
   type        = string
   description = "Azure region used for all resources"
-  default     = "canadacentral"
+  default     = "eastus2"
 }
 
 variable "storage_accountname" {
   type        = string
   description = "Description the storage account name"
-  default     = "az10408rg1rsp2006202219"
+  default     = "az10408rg1rsp2209202209"
 }
 
 variable "storage_container" {
@@ -184,4 +220,16 @@ variable "install_IIS" {
   type        = string
   description = "Description the storage share name"
   default     = "install_IIS"
+}
+
+variable "install_IIS2" {
+  type        = string
+  description = "Description the storage share name"
+  default     = "install_IIS2"
+}
+
+variable "install_IIS_file" {
+  type        = string
+  description = "Description the storage share name"
+  default     = "az104-08-install_IIS.ps1"
 }
