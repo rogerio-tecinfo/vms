@@ -39,12 +39,12 @@ steps:
     echo "Inicializando Terraform..."
     terraform init \
       -backend-config="resource_group_name=RG02" \
-      -backend-config="storage_account_name=seustorageaccount" \
+      -backend-config="storage_account_name=restorevmrg02" \
       -backend-config="container_name=tfstate" \
-      -backend-config="key=terraform.tfstate"
+      -backend-config="key=prod.tfstate"
     
     echo "Executando Terraform Plan..."
-    terraform plan -out=tfplan -var-file=terraform.tfvars
+    terraform plan -out=tfplan -var-file=prod.tfvars
     
     echo "Aplicando mudanças..."
     terraform apply -auto-approve tfplan
