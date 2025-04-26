@@ -34,18 +34,8 @@ jobs:
       scriptLocation: inlineScript
       inlineScript: |
         az show account
-        # Explicit service principal login
-        # az login --service-principal \
-        #   -u "$(servicePrincipalId)" \
-        #   -p "$(servicePrincipalKey)" \
-        #   --tenant "$(tenantId)"
-
-        # # Set variables for Terraform
-        # echo "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$(servicePrincipalId)"
-        # echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$(servicePrincipalKey)"
-        # echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$(subscriptionId)"
-        # echo "##vso[task.setvariable variable=ARM_TENANT_ID]$(tenantId)"
-
+        az group list
+      
   # Step 3: Terraform Init (with explicit auth)
   - script: |
       terraform init \
@@ -60,9 +50,10 @@ jobs:
       ARM_TENANT_ID: $(ARM_TENANT_ID)
     displayName: 'Terraform Init'
 
-  # Step 4: Terraform Plan
+  # Step 4: Terraform Plan and Apply
   - script: |
-      terraform plan -out=tfplan input=false -var-file=prod.tfvars
+      terraform plan -out=tfplan -input=false -var-file=prod.tfvars
+      terraform apply -input=false -var-file=prod.tfvars
     env:
       ARM_CLIENT_ID: $(ARM_CLIENT_ID)
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
