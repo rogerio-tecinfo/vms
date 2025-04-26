@@ -2,62 +2,61 @@ trigger:
 - main
 
 variables:
-  terraformVersion: '1.3.7'
-  workingDirectory: '$(System.DefaultWorkingDirectory)/vms'
-  azureSubscription: 'SC-Terraform-Azure' # Nome da Service Connection
-  environment: 'prod'
+  TF_VERSION: '1.3.7'
+  WORKING_DIR: '$(System.DefaultWorkingDirectory)/vms'
+  AZURE_SUBSCRIPTION: 'Azure-Connection' # Nome da sua Service Connection
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-# Instalação do Terraform
-- task: TerraformInstaller@0
-  displayName: 'Install Terraform $(terraformVersion)'
-  inputs:
-    terraformVersion: '$(terraformVersion)'
+# 1. Instalação manual do Terraform
+- bash: |
+    echo "Instalando Terraform $(TF_VERSION)..."
+    wget https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
+    unzip terraform_$(TF_VERSION)_linux_amd64.zip
+    sudo install terraform /usr/local/bin/
+    terraform -version
+  displayName: 'Install Terraform'
 
-# Autenticação via App Registration
+# 2. Configura credenciais do Azure
 - task: AzureCLI@2
   displayName: 'Azure Login'
   inputs:
-    azureSubscription: '$(azureSubscription)'
+    azureSubscription: '$(AZURE_SUBSCRIPTION)'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      echo "##[section]Configurando credenciais do Terraform"
+      echo "Configurando credenciais Terraform..."
       export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
       export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
       export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
       export ARM_TENANT_ID=$(ARM_TENANT_ID)
-      echo "Azure credentials configured"
 
-# Comandos Terraform
-- task: TerraformCLI@0
-  displayName: 'Terraform Init'
-  inputs:
-    command: 'init'
-    workingDirectory: '$(workingDirectory)'
-    backendType: 'azurerm'
-    backendServiceArm: '$(azureSubscription)'
-    backendAzureRmResourceGroupName: 'RG02'
-    backendAzureRmStorageAccountName: 'restorevmrg02'
-    backendAzureRmContainerName: 'tfstate'
-    backendAzureRmKey: 'terraforn.tfstate'
-    environmentServiceName: '$(azureSubscription)'
+# 3. Comandos Terraform
+- bash: |
+    cd $(WORKING_DIR)
+    echo "Inicializando Terraform..."
+    terraform init \
+      -backend-config="resource_group_name=RG02" \
+      -backend-config="storage_account_name=seustorageaccount" \
+      -backend-config="container_name=tfstate" \
+      -backend-config="key=prod.tfstate"
+    
+    echo "Executando Terraform Plan..."
+    terraform plan -out=tfplan -var-file=prod.tfvars
+    
+    echo "Aplicando mudanças..."
+    terraform apply -auto-approve tfplan
+  displayName: 'Run Terraform Commands'
+  env:
+    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+    ARM_TENANT_ID: $(ARM_TENANT_ID)
 
-- task: TerraformCLI@0
-  displayName: 'Terraform Plan'
-  inputs:
-    command: 'plan'
-    workingDirectory: '$(workingDirectory)'
-    commandOptions: '-out=tfplan -var-file=terraform.tfvars'
-    environmentServiceName: '$(azureSubscription)'
-
-- task: TerraformCLI@0
-  displayName: 'Terraform Apply'
-  inputs:
-    command: 'apply'
-    workingDirectory: '$(workingDirectory)'
-    commandOptions: 'tfplan'
-    environmentServiceName: '$(azureSubscription)'
+# 4. (Opcional) Validação pós-deploy
+- bash: |
+    cd $(WORKING_DIR)
+    terraform output
+  displayName: 'Show Outputs'
