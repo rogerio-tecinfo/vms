@@ -1,48 +1,56 @@
 trigger:
-- main
+- main  # Ou a branch desejada para o trigger do pipeline
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  terraformVersion: '1.3.7'  # versão do Terraform
-  tfstateResourceGroup: 'RG02'
-  tfstateStorageAccount: 'restorevmrg02'
-  tfstateContainer: 'tfstate'
-  tfstateKey: 'prod.tfstate'
+  tfstateResourceGroup: 'RG02'  # Nome do Resource Group que tem o Storage Account
+  tfstateStorageAccount: 'restorevmrg02'  # Nome do Storage Account
+  tfstateContainer: 'tfstate'  # Nome do container no Blob Storage
+  tfstateKey: 'prod.tfstate'  # Nome do arquivo .tfstate que será salvo
+  azureSubscription: '$(AZURE_SUBSCRIPTION)'  # Service Connection (Azure DevOps)
 
-stages:
-- stage: Terraform
-  jobs:
-  - job: TerraformJob
-    steps:
+jobs:
+- job: Terraform
+  displayName: 'Run Terraform'
+  steps:
 
-    # Instala Terraform
-    - task: TerraformInstaller@1
-      displayName: 'Install Terraform'
-      inputs:
-        terraformVersion: '$(terraformVersion)'
+  # Passo 1: Configuração do Azure CLI e exportação das variáveis para o Terraform
+  - task: AzureCLI@2
+    displayName: 'Azure Login and Set ENV'
+    inputs:
+      azureSubscription: '$(azureSubscription)'  # Substituir com o nome do Service Connection
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        echo "Exportando variáveis para o Terraform..."
+        echo "##vso[task.setvariable variable=ARM_CLIENT_ID]$servicePrincipalId"
+        echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$servicePrincipalKey"
+        echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$subscriptionId"
+        echo "##vso[task.setvariable variable=ARM_TENANT_ID]$tenantId"
 
-    # Login no Azure usando o Service Connection
-    - task: AzureCLI@2
-      displayName: 'Azure Login'
-      inputs:
-        azureSubscription: 'SC-Terraform-Azure'  # <-- substitua aqui com o nome da sua conexão no DevOps
-        scriptType: bash
-        scriptLocation: inlineScript
-        inlineScript: |
-          echo "Login no Azure feito!"
+  # Passo 2: Terraform Init
+  - script: |
+      export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+      export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+      export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+      export ARM_TENANT_ID=$(ARM_TENANT_ID)
 
-    # Rodando Terraform Init
-    - script: |
-        terraform init \
-          -backend-config="resource_group_name=$(tfstateResourceGroup)" \
-          -backend-config="storage_account_name=$(tfstateStorageAccount)" \
-          -backend-config="container_name=$(tfstateContainer)" \
-          -backend-config="key=$(tfstateKey)"
-      displayName: 'Terraform Init'
+      terraform init \
+        -backend-config="resource_group_name=$(tfstateResourceGroup)" \
+        -backend-config="storage_account_name=$(tfstateStorageAccount)" \
+        -backend-config="container_name=$(tfstateContainer)" \
+        -backend-config="key=$(tfstateKey)"
+    displayName: 'Terraform Init'
 
-    # Rodando Terraform Plan
-    - script: |
-        terraform plan -out=tfplan
-      displayName: 'Terraform Plan'
+  # Passo 3: Terraform Plan
+  - script: |
+      terraform plan -out=tfplan
+    displayName: 'Terraform Plan'
+
+  # Passo 4: Terraform Apply
+  - script: |
+      terraform apply -auto-approve tfplan
+    displayName: 'Terraform Apply'
+
