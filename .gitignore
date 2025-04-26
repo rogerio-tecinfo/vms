@@ -40,3 +40,4 @@ terraform.rc
 *.env
 *.secret
 *.tfvars
+prod.tfvars
