@@ -33,8 +33,8 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-      az show account
-        # # Explicit service principal login
+        az show account
+        # Explicit service principal login
         # az login --service-principal \
         #   -u "$(servicePrincipalId)" \
         #   -p "$(servicePrincipalKey)" \
