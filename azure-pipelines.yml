@@ -16,7 +16,16 @@ jobs:
   displayName: 'Run Terraform'
   steps:
 
-  # Passo 1: Configuração do Azure CLI e exportação das variáveis para o Terraform
+  # Passo 1: Instalar Terraform
+  - script: |
+      echo "Instalando o Terraform..."
+      curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
+      sudo apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+      sudo apt-get update
+      sudo apt-get install terraform
+    displayName: 'Install Terraform'
+
+  # Passo 2: Configuração do Azure CLI e exportação das variáveis para o Terraform
   - task: AzureCLI@2
     displayName: 'Azure Login and Set ENV'
     inputs:
@@ -30,7 +39,7 @@ jobs:
         echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$subscriptionId"
         echo "##vso[task.setvariable variable=ARM_TENANT_ID]$tenantId"
 
-  # Passo 2: Terraform Init
+  # Passo 3: Terraform Init
   - script: |
       export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
       export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
@@ -44,13 +53,12 @@ jobs:
         -backend-config="key=$(tfstateKey)"
     displayName: 'Terraform Init'
 
-  # Passo 3: Terraform Plan
+  # Passo 4: Terraform Plan
   - script: |
       terraform plan -out=tfplan
     displayName: 'Terraform Plan'
 
-  # Passo 4: Terraform Apply
+  # Passo 5: Terraform Apply
   - script: |
       terraform apply -auto-approve tfplan
     displayName: 'Terraform Apply'
-
