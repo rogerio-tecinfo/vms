@@ -53,7 +53,7 @@ jobs:
   # Step 4: Terraform Plan and Apply
   - script: |
       terraform plan -out=tfplan -input=false -var-file=prod.tfvars
-      terraform apply -input=false -var-file=prod.tfvars
+      terraform apply -input=false -var-file=prod.tfvars -auto-approve
     env:
       ARM_CLIENT_ID: $(ARM_CLIENT_ID)
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
