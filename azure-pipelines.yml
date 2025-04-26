@@ -3,7 +3,7 @@ trigger:
 
 variables:
   terraformVersion: '1.3.7'
-  workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'  # Assumindo que seu código está numa subpasta 'terraform'
+  workingDirectory: '$(System.DefaultWorkingDirectory)/VMS'  # Assumindo que seu código está numa subpasta 'terraform'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -20,11 +20,11 @@ steps:
     command: 'init'
     workingDirectory: '$(workingDirectory)'
     backendType: 'azurerm'
-    backendServiceArm: 'Azure-Connection'  # Nome da sua Service Connection no Azure DevOps
+    backendServiceArm: 'SC-Terraform-Azure'  # Nome da sua Service Connection no Azure DevOps
     backendAzureRmResourceGroupName: 'RG02'
-    backendAzureRmStorageAccountName: 'yourstorageaccount'
+    backendAzureRmStorageAccountName: 'restorevmrg02'
     backendAzureRmContainerName: 'tfstate'
-    backendAzureRmKey: 'prod.tfstate'  # Nome do arquivo de estado
+    backendAzureRmKey: 'terraform.tfstate'  # Nome do arquivo de estado
 
 - task: TerraformCLI@0
   displayName: 'Terraform Validate'
@@ -37,7 +37,7 @@ steps:
   inputs:
     command: 'plan'
     workingDirectory: '$(workingDirectory)'
-    commandOptions: '-out=tfplan -var-file=prod.tfvars'
+    commandOptions: '-out=tfplan -var-file=terraform.tfvars'
     environmentServiceName: 'Azure-Connection'
 
 - task: TerraformCLI@0
