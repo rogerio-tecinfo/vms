@@ -1,5 +1,5 @@
 trigger:
-- main  # Or your desired trigger branch
+- main
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -9,7 +9,7 @@ variables:
   tfstateStorageAccount: 'restorevmrg02'
   tfstateContainer: 'tfstate'
   tfstateKey: 'prod.tfstate'
-  azureSubscription: 'Terraform-automation'  # Make sure this matches your Service Connection name exactly
+  azureSubscription: 'Terraform-automation'  # CASE-SENSITIVE!
 
 jobs:
 - job: Terraform
@@ -25,21 +25,27 @@ jobs:
       sudo apt-get install terraform
     displayName: 'Install Terraform'
 
-  # Step 2: Azure Login and Export Variables
+  # Step 2: Azure Login and ENV Setup (CRITICAL FIX)
   - task: AzureCLI@2
     displayName: 'Azure Login and Set ENV'
     inputs:
-      azureSubscription: 'Terraform-automation'  # Must match your Service Connection name
+      azureSubscription: 'Terraform-automation'  # Must match EXACTLY
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        echo "Setting Azure authentication environment variables for Terraform..."
-        echo "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$servicePrincipalId"
-        echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$servicePrincipalKey"
-        echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$subscriptionId"
-        echo "##vso[task.setvariable variable=ARM_TENANT_ID]$tenantId"
+        # Explicit service principal login
+        az login --service-principal \
+          -u "$(servicePrincipalId)" \
+          -p "$(servicePrincipalKey)" \
+          --tenant "$(tenantId)"
 
-  # Step 3: Terraform Init
+        # Set variables for Terraform
+        echo "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$(servicePrincipalId)"
+        echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$(servicePrincipalKey)"
+        echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$(subscriptionId)"
+        echo "##vso[task.setvariable variable=ARM_TENANT_ID]$(tenantId)"
+
+  # Step 3: Terraform Init (with explicit auth)
   - script: |
       terraform init \
         -backend-config="resource_group_name=$(tfstateResourceGroup)" \
@@ -61,14 +67,4 @@ jobs:
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
       ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
       ARM_TENANT_ID: $(ARM_TENANT_ID)
-    displayName: 'Terraform Plan'
-
-  # Step 5: Terraform Apply
-  - script: |
-      terraform apply -auto-approve tfplan
-    env:
-      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-      ARM_TENANT_ID: $(ARM_TENANT_ID)
-    displayName: 'Terraform Apply'
+    dis
