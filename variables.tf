@@ -1,6 +1,18 @@
+variable "vm_name" {
+  description = "Nome da Máquina Virtual"
+  type        = string
+}
+
 variable "vm_names" {
-  type    = list(string)
-  default = ["tsprdad01", "tsprdeid01"]  # Lista de VMs
+  description = "Lista de nomes para as VMs"
+  type        = list(string)
+  default     = ["tsprdad02", "tsprdeid02"]
+}
+
+variable "vm_count" {
+  description = "Número de VMs a serem criadas"
+  type        = number
+  default     = 1
 }
 
 variable "vm_size" {

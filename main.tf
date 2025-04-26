@@ -22,7 +22,7 @@ data "azurerm_network_security_group" "existing" {
 # Criar a interface de rede associada ao NSG existente
 resource "azurerm_network_interface" "example" {
   count               = length(var.vm_names)
-  name                = var.vm_names[count.index]
+  name                = "${var.vm_names[count.index]}-nic"
   location            = data.azurerm_resource_group.existing.location
   resource_group_name = data.azurerm_resource_group.existing.name
 
@@ -35,7 +35,8 @@ resource "azurerm_network_interface" "example" {
 
 # Associar o NSG existente à interface de rede
 resource "azurerm_network_interface_security_group_association" "example" {
-  network_interface_id      = azurerm_network_interface.example.id
+  count                     = var.vm_count
+  network_interface_id      = azurerm_network_interface.example[count.index].id
   network_security_group_id = data.azurerm_network_security_group.existing.id
 }
 
@@ -49,7 +50,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   admin_username      = var.admin_username
   admin_password      = var.admin_password
   network_interface_ids = [
-    azurerm_network_interface.example.id,
+  azurerm_network_interface.example[count.index].id
   ]
 
   os_disk {
