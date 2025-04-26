@@ -1,8 +1,3 @@
-variable "vm_name" {
-  description = "Nome da Máquina Virtual"
-  type        = string
-}
-
 variable "vm_names" {
   description = "Lista de nomes para as VMs"
   type        = list(string)
