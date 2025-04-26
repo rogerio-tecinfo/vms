@@ -9,7 +9,7 @@ variables:
   tfstateStorageAccount: 'restorevmrg02'  # Nome do Storage Account
   tfstateContainer: 'tfstate'  # Nome do container no Blob Storage
   tfstateKey: 'prod.tfstate'  # Nome do arquivo .tfstate que será salvo
-  azureSubscription: 'SC-Terraform-Azure'  # Service Connection (Azure DevOps)
+  azureSubscription: 'Terraform-automation'  # Service Connection (Azure DevOps)
 
 jobs:
 - job: Terraform
@@ -29,7 +29,7 @@ jobs:
   - task: AzureCLI@2
     displayName: 'Azure Login and Set ENV'
     inputs:
-      azureSubscription: 'SC-Terraform-Azure'  # Substituir com o nome do Service Connection
+      azureSubscription: 'Terraform-Automation'  # Substituir com o nome do Service Connection
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
