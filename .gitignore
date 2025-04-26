@@ -4,6 +4,7 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
+terraform-provider-azurerm_v3.0.0_x5.exe
 
 # Crash log files
 crash.log
