@@ -29,7 +29,7 @@ jobs:
   - task: AzureCLI@2
     displayName: 'Azure Login and Set ENV'
     inputs:
-      azureSubscription: 'Terraform-automation'  # Must match EXACTLY
+      azureSubscription: 'Terraform-Automation'  # Must match EXACTLY
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
