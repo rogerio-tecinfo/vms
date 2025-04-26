@@ -39,5 +39,5 @@ terraform.rc
 *.txt
 *.env
 *.secret
-*.tfvars
-prod.tfvars
+
+
