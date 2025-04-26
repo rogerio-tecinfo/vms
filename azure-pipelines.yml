@@ -3,18 +3,14 @@ trigger:
 
 variables:
   TF_VERSION: '1.3.7'
-  WORKING_DIR: '$(System.DefaultWorkingDirectory)'
-  AZURE_SUBSCRIPTION: 'SC-Terraform-Azure' # Nome da sua Service Connection
-  ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-  ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-  ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-  ARM_TENANT_ID: $(ARM_TENANT_ID)
+  WORKING_DIR: '$(System.DefaultWorkingDirectory)/vms'
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-# 1. Instalação manual do Terraform
+
+# 1. Instalar o Terraform
 - bash: |
     echo "Instalando Terraform $(TF_VERSION)..."
     wget https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
@@ -23,41 +19,29 @@ steps:
     terraform -version
   displayName: 'Install Terraform'
 
-# 2. Inicializa o Terraform com a configuração de backend
-- task: AzureCLI@2
+# 2. Terraform Init e Plan diretamente com variáveis ARM
+- bash: |
+    echo "Configurando variáveis de ambiente ARM..."
+    export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
+    export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
+    export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
+    export ARM_TENANT_ID=$(ARM_TENANT_ID)
+
+    echo "Iniciando Terraform Init..."
+    cd $(WORKING_DIR)
+
+    terraform init -reconfigure \
+      -backend-config="resource_group_name=RG02" \
+      -backend-config="storage_account_name=restorevmrg02" \
+      -backend-config="container_name=tfstate" \
+      -backend-config="key=prod.tfstate"
+
+    echo "Executando Terraform Plan..."
+    terraform plan -out=tfplan -var-file=prod.tfvars
   displayName: 'Terraform Init and Plan'
-  inputs:
-    azureSubscription: '$(AZURE_SUBSCRIPTION)'  # Azure Service Connection
-    scriptType: 'bash'
-    scriptLocation: 'inlineScript'
-    inlineScript: |
-      echo "Iniciando Terraform Init..."
-      cd $(WORKING_DIR)
 
-      # Autenticação via Service Principal diretamente no Terraform
-      export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-      export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-      export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-      export ARM_TENANT_ID=$(ARM_TENANT_ID)
-
-      terraform init -reconfigure \
-        -backend-config="resource_group_name=RG02" \
-        -backend-config="storage_account_name=restorevmrg02" \
-        -backend-config="container_name=tfstate" \
-        -backend-config="key=prod.tfstate"
-      
-      echo "Executando Terraform Plan..."
-      terraform plan -out=tfplan -var-file=prod.tfvars
-
-# 3. Aplicação das mudanças com Terraform
+# 3. Terraform Apply
 - bash: |
     cd $(WORKING_DIR)
-    echo "Aplicando mudanças..."
     terraform apply -auto-approve tfplan
-  displayName: 'Apply Terraform Changes'
-
-# 4. (Opcional) Validação pós-deploy
-- bash: |
-    cd $(WORKING_DIR)
-    terraform output
-  displayName: 'Show Outputs'
+  displayName: 'Terraform Apply'
