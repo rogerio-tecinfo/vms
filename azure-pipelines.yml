@@ -4,13 +4,16 @@ trigger:
 variables:
   TF_VERSION: '1.3.7'
   WORKING_DIR: '$(System.DefaultWorkingDirectory)'
-  AZURE_SUBSCRIPTION: 'SC-Terraform-Azure' # Nome da sua Service Connection
+  AZURE_SUBSCRIPTION: 'SC-Terraform-Azure'   # Nome da sua Service Connection
+  RESOURCE_GROUP: 'RG02'                     # <- Ajustar aqui
+  STORAGE_ACCOUNT: 'restorevmrg02'           # <- Ajustar aqui
+  CONTAINER_NAME: 'tfstate'
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-# 1. Instalação manual do Terraform
+# 1. Instala o Terraform
 - bash: |
     echo "Instalando Terraform $(TF_VERSION)..."
     wget https://releases.hashicorp.com/terraform/$(TF_VERSION)/terraform_$(TF_VERSION)_linux_amd64.zip
@@ -19,7 +22,7 @@ steps:
     terraform -version
   displayName: 'Install Terraform'
 
-# 2. Configura credenciais do Azure
+# 2. Login no Azure
 - task: AzureCLI@2
   displayName: 'Azure Login'
   inputs:
@@ -27,36 +30,41 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      echo "Configurando credenciais Terraform..."
-      export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-      export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-      export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-      export ARM_TENANT_ID=$(ARM_TENANT_ID)
+      echo "Verificando se o container $(CONTAINER_NAME) existe..."
 
-# 3. Comandos Terraform
+      # Checa se o container já existe
+      EXISTING_CONTAINER=$(az storage container exists \
+        --name $(CONTAINER_NAME) \
+        --account-name $(STORAGE_ACCOUNT) \
+        --auth-mode login \
+        --query exists)
+
+      echo "Container existente: $EXISTING_CONTAINER"
+
+      if [ "$EXISTING_CONTAINER" == "false" ]; then
+        echo "Container não existe. Criando..."
+        az storage container create \
+          --name $(CONTAINER_NAME) \
+          --account-name $(STORAGE_ACCOUNT) \
+          --auth-mode login
+      else
+        echo "Container já existe. Nada a fazer."
+      fi
+
+# 3. Rodar o Terraform
 - bash: |
     cd $(WORKING_DIR)
+
     echo "Inicializando Terraform..."
     terraform init \
-      -backend-config="resource_group_name=RG02" \
-      -backend-config="storage_account_name=restorevmrg02" \
-      -backend-config="container_name=tfstate" \
+      -backend-config="resource_group_name=$(RESOURCE_GROUP)" \
+      -backend-config="storage_account_name=$(STORAGE_ACCOUNT)" \
+      -backend-config="container_name=$(CONTAINER_NAME)" \
       -backend-config="key=prod.tfstate"
-    
+
     echo "Executando Terraform Plan..."
     terraform plan -out=tfplan -var-file=prod.tfvars
-    
+
     echo "Aplicando mudanças..."
     terraform apply -auto-approve tfplan
-  displayName: 'Run Terraform Commands'
-  env:
-    ARM_CLIENT_ID: $(ARM_CLIENT_ID)
-    ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
-    ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
-    ARM_TENANT_ID: $(ARM_TENANT_ID)
-
-# 4. (Opcional) Validação pós-deploy
-- bash: |
-    cd $(WORKING_DIR)
-    terraform output
-  displayName: 'Show Outputs'
+  displayName: 'Run Terraform'
