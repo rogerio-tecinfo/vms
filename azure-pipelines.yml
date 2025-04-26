@@ -1,64 +1,74 @@
 trigger:
-- main  # Ou a branch desejada para o trigger do pipeline
+- main  # Or your desired trigger branch
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  tfstateResourceGroup: 'RG02'  # Nome do Resource Group que tem o Storage Account
-  tfstateStorageAccount: 'restorevmrg02'  # Nome do Storage Account
-  tfstateContainer: 'tfstate'  # Nome do container no Blob Storage
-  tfstateKey: 'prod.tfstate'  # Nome do arquivo .tfstate que será salvo
-  azureSubscription: 'Terraform-automation'  # Service Connection (Azure DevOps)
+  tfstateResourceGroup: 'RG02'
+  tfstateStorageAccount: 'restorevmrg02'
+  tfstateContainer: 'tfstate'
+  tfstateKey: 'prod.tfstate'
+  azureSubscription: 'Terraform-automation'  # Make sure this matches your Service Connection name exactly
 
 jobs:
 - job: Terraform
   displayName: 'Run Terraform'
   steps:
 
-  # Passo 1: Instalar Terraform
+  # Step 1: Install Terraform
   - script: |
-      echo "Instalando o Terraform..."
+      echo "Installing Terraform..."
       curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add -
       sudo apt-add-repository "deb https://apt.releases.hashicorp.com $(lsb_release -cs) main"
       sudo apt-get update
       sudo apt-get install terraform
     displayName: 'Install Terraform'
 
-  # Passo 2: Configuração do Azure CLI e exportação das variáveis para o Terraform
+  # Step 2: Azure Login and Export Variables
   - task: AzureCLI@2
     displayName: 'Azure Login and Set ENV'
     inputs:
-      azureSubscription: 'Terraform-Automation'  # Substituir com o nome do Service Connection
+      azureSubscription: 'Terraform-automation'  # Must match your Service Connection name
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        echo "Exportando variáveis para o Terraform..."
-        echo "##vso[task.setvariable variable=ARM_CLIENT_ID]$servicePrincipalId"
-        echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET]$servicePrincipalKey"
+        echo "Setting Azure authentication environment variables for Terraform..."
+        echo "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$servicePrincipalId"
+        echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$servicePrincipalKey"
         echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$subscriptionId"
         echo "##vso[task.setvariable variable=ARM_TENANT_ID]$tenantId"
 
-  # Passo 3: Terraform Init
+  # Step 3: Terraform Init
   - script: |
-      export ARM_CLIENT_ID=$(ARM_CLIENT_ID)
-      export ARM_CLIENT_SECRET=$(ARM_CLIENT_SECRET)
-      export ARM_SUBSCRIPTION_ID=$(ARM_SUBSCRIPTION_ID)
-      export ARM_TENANT_ID=$(ARM_TENANT_ID)
-
       terraform init \
         -backend-config="resource_group_name=$(tfstateResourceGroup)" \
         -backend-config="storage_account_name=$(tfstateStorageAccount)" \
         -backend-config="container_name=$(tfstateContainer)" \
         -backend-config="key=$(tfstateKey)"
+    env:
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
     displayName: 'Terraform Init'
 
-  # Passo 4: Terraform Plan
+  # Step 4: Terraform Plan
   - script: |
       terraform plan -out=tfplan
+    env:
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
     displayName: 'Terraform Plan'
 
-  # Passo 5: Terraform Apply
+  # Step 5: Terraform Apply
   - script: |
       terraform apply -auto-approve tfplan
+    env:
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
     displayName: 'Terraform Apply'
