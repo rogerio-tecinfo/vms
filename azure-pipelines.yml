@@ -16,7 +16,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Login no Azure'
   inputs:
-    azureSubscription: '$(AZURE_SUBSCRIPTION)'   # Nome do Service Connection configurado no Azure DevOps
+    azureSubscription: 'SC-Terraform-Azure'   # Nome do Service Connection configurado no Azure DevOps
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
