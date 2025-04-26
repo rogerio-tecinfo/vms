@@ -14,6 +14,13 @@ steps:
   inputs:
     terraformVersion: '$(terraformVersion)'
 
+steps:
+- task: TerraformCLI@0
+  displayName: 'Terraform Init'
+  inputs:
+    command: 'init'
+    workingDirectory: '$(workingDirectory)'    
+
 - task: TerraformCLI@0
   displayName: 'Terraform Init'
   inputs:
