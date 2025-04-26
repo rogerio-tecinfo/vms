@@ -21,7 +21,8 @@ data "azurerm_network_security_group" "existing" {
 
 # Criar a interface de rede associada ao NSG existente
 resource "azurerm_network_interface" "example" {
-  name                = "${var.vm_name}-nic"
+  count               = length(var.vm_names)
+  name                = var.vm_names[count.index]
   location            = data.azurerm_resource_group.existing.location
   resource_group_name = data.azurerm_resource_group.existing.name
 
