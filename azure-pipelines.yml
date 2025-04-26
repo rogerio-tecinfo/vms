@@ -33,17 +33,18 @@ jobs:
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
-        # Explicit service principal login
-        az login --service-principal \
-          -u "$(servicePrincipalId)" \
-          -p "$(servicePrincipalKey)" \
-          --tenant "$(tenantId)"
+      az show account
+        # # Explicit service principal login
+        # az login --service-principal \
+        #   -u "$(servicePrincipalId)" \
+        #   -p "$(servicePrincipalKey)" \
+        #   --tenant "$(tenantId)"
 
-        # Set variables for Terraform
-        echo "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$(servicePrincipalId)"
-        echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$(servicePrincipalKey)"
-        echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$(subscriptionId)"
-        echo "##vso[task.setvariable variable=ARM_TENANT_ID]$(tenantId)"
+        # # Set variables for Terraform
+        # echo "##vso[task.setvariable variable=ARM_CLIENT_ID;issecret=true]$(servicePrincipalId)"
+        # echo "##vso[task.setvariable variable=ARM_CLIENT_SECRET;issecret=true]$(servicePrincipalKey)"
+        # echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$(subscriptionId)"
+        # echo "##vso[task.setvariable variable=ARM_TENANT_ID]$(tenantId)"
 
   # Step 3: Terraform Init (with explicit auth)
   - script: |
