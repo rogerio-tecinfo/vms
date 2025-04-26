@@ -1,0 +1,37 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: TerraformInstaller@0
+  displayName: 'Install Terraform'
+  inputs:
+    terraformVersion: '1.3.7'
+
+- task: TerraformCLI@0
+  displayName: 'Terraform init'
+  inputs:
+    command: 'init'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    backendType: 'azurerm'
+    backendServiceArm: 'your-azure-service-connection'
+    backendAzureRmResourceGroupName: 'RG02'
+    backendAzureRmStorageAccountName: 'yourstorageaccount'
+    backendAzureRmContainerName: 'tfstate'
+    backendAzureRmKey: 'terraform.tfstate'
+
+- task: TerraformCLI@0
+  displayName: 'Terraform plan'
+  inputs:
+    command: 'plan'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    commandOptions: '-out=tfplan'
+
+- task: TerraformCLI@0
+  displayName: 'Terraform apply'
+  inputs:
+    command: 'apply'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    commandOptions: 'tfplan'
