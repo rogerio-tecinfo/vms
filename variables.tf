@@ -74,3 +74,9 @@ variable "resource_group_name" {
   type        = string
   default     = "RG02"
 }
+
+# variables.tf
+variable "environment" {
+  type    = string
+  default = "prod"
+}
