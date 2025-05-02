@@ -70,7 +70,7 @@ variable "image_sku1" {
   default     = "win11-24h2-pro"
 }
 
-variable "image_version1" {
+variable "image_version" {
   description = "Versão da imagem"
   type        = string
   default     = "latest"
