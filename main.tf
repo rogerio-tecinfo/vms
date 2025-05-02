@@ -69,3 +69,33 @@ resource "azurerm_windows_virtual_machine" "example" {
   enable_automatic_updates = true
   provision_vm_agent       = true
 }
+
+# Criar a VM Windows
+resource "azurerm_windows_virtual_machine" "example1" {
+  count               = length(var.vm_names)
+  name                = var.vm_names[count.index]
+  resource_group_name = data.azurerm_resource_group.existing.name
+  location            = data.azurerm_resource_group.existing.location
+  size                = var.vm_size
+  admin_username      = var.admin_username
+  admin_password      = var.admin_password
+  network_interface_ids = [
+  azurerm_network_interface.example[count.index].id
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = var.os_disk_type
+  }
+
+  source_image_reference {
+    publisher = var.image_publisher1
+    offer     = var.image_offer1
+    sku       = var.image_sku1
+    version   = var.image_version1
+  }
+
+  # Configurações específicas para Windows
+  enable_automatic_updates = true
+  provision_vm_agent       = true
+}

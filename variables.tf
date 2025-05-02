@@ -1,7 +1,7 @@
 variable "vm_names" {
   description = "Lista de nomes para as VMs"
   type        = list(string)
-  default     = ["tsprdad02", "tsprdeid02"]
+  default     = ["tsprdwin10", "tsprdwin11"]
 }
 
 variable "vm_count" {
@@ -33,26 +33,44 @@ variable "os_disk_type" {
   default     = "StandardSSD_LRS"
 }
 
-# Imagem Windows Server
+# Imagem Windows 10 e 11
 variable "image_publisher" {
   description = "Publicador da imagem"
   type        = string
-  default     = "MicrosoftWindowsServer"
+  default     = "MicrosoftWindowsDesktop"
 }
 
 variable "image_offer" {
   description = "Oferta da imagem"
   type        = string
-  default     = "WindowsServer"
+  default     = "windows-10"
 }
 
 variable "image_sku" {
   description = "SKU da imagem"
   type        = string
-  default     = "2019-Datacenter"
+  default     = "win10-22h2-pro"
 }
 
-variable "image_version" {
+variable "image_publisher1" {
+  description = "Publicador da imagem"
+  type        = string
+  default     = "MicrosoftWindowsDesktop"
+}
+
+variable "image_offer1" {
+  description = "Oferta da imagem"
+  type        = string
+  default     = "windows-11"
+}
+
+variable "image_sku1" {
+  description = "SKU da imagem"
+  type        = string
+  default     = "win11-24h2-pro"
+}
+
+variable "image_version1" {
   description = "Versão da imagem"
   type        = string
   default     = "latest"
