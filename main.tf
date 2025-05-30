@@ -92,7 +92,7 @@ resource "azurerm_windows_virtual_machine" "example1" {
     publisher = var.image_publisher1
     offer     = var.image_offer1
     sku       = var.image_sku1
-    version   = var.image_version
+    version   = var.image_version1
   }
 
   # Configurações específicas para Windows
