@@ -50,7 +50,7 @@ resource "azurerm_windows_virtual_machine" "example" {
   admin_username      = var.admin_username
   admin_password      = var.admin_password
   network_interface_ids = [
-  azurerm_network_interface.example[count.index].id
+    azurerm_network_interface.example[count.index].id
   ]
 
   os_disk {
@@ -80,7 +80,7 @@ resource "azurerm_windows_virtual_machine" "example1" {
   admin_username      = var.admin_username
   admin_password      = var.admin_password
   network_interface_ids = [
-  azurerm_network_interface.example[count.index].id
+    azurerm_network_interface.example[count.index].id
   ]
 
   os_disk {

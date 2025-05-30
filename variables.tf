@@ -1,7 +1,7 @@
 variable "vm_names" {
   description = "Lista de nomes para as VMs"
   type        = list(string)
-  default     = ["tsprdwin10", "tsprdwin11"]
+  default     = ["tsprdwin10-2", "tsprdwin11-2"]
 }
 
 variable "vm_count" {
@@ -43,13 +43,13 @@ variable "image_publisher" {
 variable "image_offer" {
   description = "Oferta da imagem"
   type        = string
-  default     = "windows-10"
+  default     = "windows-11"
 }
 
 variable "image_sku" {
   description = "SKU da imagem"
   type        = string
-  default     = "win10-22h2-pro"
+  default     = "win11-24h2-pro"
 }
 
 variable "image_publisher1" {
@@ -61,13 +61,13 @@ variable "image_publisher1" {
 variable "image_offer1" {
   description = "Oferta da imagem"
   type        = string
-  default     = "windows-11"
+  default     = "windows-10"
 }
 
 variable "image_sku1" {
   description = "SKU da imagem"
   type        = string
-  default     = "win11-24h2-pro"
+  default     = "win10-22h2-pro"
 }
 
 variable "image_version" {
